@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Misión Marte — Simulador espacial educativo",
-  description: "Pilotá el lanzamiento y aterrizaje de una nave de la Tierra a Marte, con decisiones narrativas y datos reales.",
+  title: "Deriva — Simulador espacial educativo",
+  description: "Pilotá una nave con física real y volá libremente entre los planetas rocosos del sistema solar, con decisiones narrativas y datos reales de la NASA/SpaceX.",
 };
 
 export default function RootLayout({

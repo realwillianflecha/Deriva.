@@ -1,4 +1,4 @@
-# Misión Marte — Documento de diseño (vivo)
+# Deriva — Documento de diseño (vivo)
 
 > Este documento se actualiza a medida que avanza el proyecto. No es una foto única: reflejá acá cada decisión y cambio de rumbo real.
 
