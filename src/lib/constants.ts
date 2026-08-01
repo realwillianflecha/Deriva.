@@ -1,5 +1,7 @@
 export const EARTH_GRAVITY = 9.81;
 export const MARS_GRAVITY = 3.71;
+export const MERCURY_GRAVITY = 3.7;
+export const VENUS_GRAVITY = 8.87;
 
 export const SHIP_BASE_ACCEL = 370;
 export const SHIP_MAX_SPEED = 1700;

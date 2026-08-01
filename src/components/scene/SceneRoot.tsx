@@ -7,6 +7,8 @@ import { PLANETS, SUN } from '@/content/planets/planetData';
 import Starfield from './Starfield';
 import Earth from './bodies/Earth';
 import Mars from './bodies/Mars';
+import Mercury from './bodies/Mercury';
+import Venus from './bodies/Venus';
 import Sun from './bodies/Sun';
 import Ship from './Ship';
 import CameraRig from './CameraRig';
@@ -32,6 +34,8 @@ export default function SceneRoot() {
       <Sun />
       <Earth />
       <Mars />
+      <Mercury />
+      <Venus />
       <Ship ref={shipRef} position={SHIP_START} />
       {phase === 'flight' && <FlightController shipRef={shipRef} />}
       <CameraRig shipRef={shipRef} />

@@ -1,4 +1,4 @@
-export type PlanetId = 'earth' | 'mars';
+export type PlanetId = 'earth' | 'mars' | 'mercury' | 'venus';
 
 export type GamePhase = 'briefing' | 'flight' | 'debrief';
 

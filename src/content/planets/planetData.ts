@@ -1,4 +1,4 @@
-import { EARTH_GRAVITY, MARS_GRAVITY } from '@/lib/constants';
+import { EARTH_GRAVITY, MARS_GRAVITY, MERCURY_GRAVITY, VENUS_GRAVITY } from '@/lib/constants';
 import type { PlanetData, PlanetId, SunData } from '@/state/types';
 
 /**
@@ -10,6 +10,8 @@ import type { PlanetData, PlanetId, SunData } from '@/state/types';
 const REAL_RADIUS_KM = {
   earth: 6371,
   mars: 3389,
+  mercury: 2439.7,
+  venus: 6051.8,
 };
 
 /**
@@ -48,6 +50,29 @@ export const PLANETS: Record<PlanetId, PlanetData> = {
     // jugable. Ver RADIUS_SCALE arriba para el porqué de esta separación.
     position: [133000, 5500, -44000],
     textureMap: '/textures/2k_mars.jpg',
+  },
+  mercury: {
+    id: 'mercury',
+    name: 'Mercurio',
+    color: '#8c7f75',
+    radius: REAL_RADIUS_KM.mercury * RADIUS_SCALE,
+    gravity: MERCURY_GRAVITY,
+    // Misma lógica de distancia comprimida que Marte, pero usando la distancia media
+    // real Tierra-Mercurio (~92M km) con el mismo factor de compresión. Dirección propia
+    // (octante distinto a Marte y Venus) para que cada destino tenga un rumbo distinguible.
+    position: [42000, -3200, 38500],
+    textureMap: '/textures/2k_mercury.jpg',
+  },
+  venus: {
+    id: 'venus',
+    name: 'Venus',
+    color: '#e8cda2',
+    radius: REAL_RADIUS_KM.venus * RADIUS_SCALE,
+    gravity: VENUS_GRAVITY,
+    // Distancia media real Tierra-Venus (~41M km, el planeta más cercano a la Tierra en
+    // promedio) con el mismo factor de compresión que Marte/Mercurio.
+    position: [21000, 3800, 13500],
+    textureMap: '/textures/2k_venus_atmosphere.jpg',
   },
 };
 

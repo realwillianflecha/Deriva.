@@ -15,6 +15,7 @@ Simulador espacial educativo para web: vuelo libre real en 3D (mouse-look + WASD
 - Modelo real de nave: "SpaceX Falcon Heavy" (Poly Pizza, CC-BY 3.0) reemplazando los primitivos cono+cilindro de v1.
 - Texturas reales (Solar System Scope, CC BY 4.0): Tierra (día + nubes), Marte, Sol, skybox de la Vía Láctea — reemplazando las esferas de color plano de v1.
 - Escala real Tierra:Marte (ratio 0.53, verificado 0.5319 vs. real 0.5321) — Tierra con 20.000 unidades de radio (relación nave:planeta ~2.850:1), Marte a ~141.000 unidades de distancia. Ver la sección "Escala de los planetas" más abajo para el porqué de estos números y por qué no son 100% reales.
+- **Mercurio y Venus sumados a la escena** (visibles y volables libremente, texturas reales de Solar System Scope) — todavía sin arco de misión propio (sin briefing/llegada/debrief para ellos, solo Marte dispara esos eventos hoy). Ver "Escala de los planetas" para las posiciones/radios.
 - Sin física de lanzamiento/aterrizaje vertical, sin estados de choque/reintento — combustible bajo = empuje reducido (15%), nunca corte total, para que nunca quede el jugador varado.
 - Brújula en pantalla (`TargetCompass.tsx`) que apunta hacia Marte cuando está fuera de cuadro — necesaria porque en espacio abierto 3D es fácil perderse.
 - Misma narrativa de v1 (2 decisiones + elección de sitio, 7 datos reales), con los textos que describían mecánicas viejas (Max-Q, aterrizaje manual) reescritos para el nuevo esquema.
@@ -59,6 +60,9 @@ Controles: click en la pantalla para tomar el mouse ("Pointer Lock"), luego mous
 - **Combustible: bajar la tasa de consumo, no subir la cantidad del tanque.** Subir `FUEL_MAX` sin tocar `FUEL_BURN_RATE` es un cambio cosmético — mismo % gastado, número más grande nomás. Lo que realmente estira el rango es bajar el consumo por segundo. Verificado con un viaje completo a boost sostenido todo el trayecto (el peor caso posible): con tanque extra (125), llegó a Marte con 83.9% (67% del tanque) — con estándar (100) habría sido ~59%.
 - **Gotcha de testing:** para medir combustible/tiempo de viaje "de verdad" hay que apuntar la nave hacia el destino (mouse-look), no solo sostener W — un test que solo sostiene W sin apuntar mide la nave alejándose en cualquier dirección, no acercándose a Marte, y da números de combustible sin sentido (parece que "se gasta todo" cuando en realidad nunca se acercó). Ya pasó dos veces en este proyecto (acá y al verificar la escala de Marte) — vale la pena recordarlo.
 - **Al sumar más planetas**: agregar su radio real a `REAL_RADIUS_KM` alcanza para el tamaño (proporción automática); la posición sigue siendo una decisión de diseño manual (qué tan comprimida la distancia) — no hay una fórmula que lo resuelva solo, porque ahí es donde se negocia jugabilidad vs. realismo.
+- **Mercurio y Venus, primer caso real de "sumar más planetas"**: radios 7.659 y 18.999 unidades (verificado: 2.439,7 km y 6.051,8 km reales × `RADIUS_SCALE`, dan 0,3830x y 0,9500x el radio de la Tierra — coincide con la proporción real 0,3830/0,9500). Posiciones comprimidas con el mismo criterio que Marte, pero usando la **distancia media real a la Tierra a lo largo del tiempo** (no la distancia orbital al Sol): Venus ~41M km (el planeta más cercano a la Tierra en promedio, no Marte — dato real, contraintuitivo), Mercurio ~92M km, contra los ~225M km ya usados para Marte — mismo factor de compresión (`distancia_Tierra_Marte_en_unidades / 225.000.000`) aplicado a los tres. Cada uno en un octante de dirección distinto (Marte +X+Y-Z, Venus +X+Y+Z, Mercurio +X-Y+Z) para que cada rumbo sea distinguible. Todavía no tienen mission arc propio — ver "Qué falta".
+- **Rotación real de cada cuerpo, no genérica**: Mercurio gira despacio (`Mercury.tsx`, real ~59 días terrestres por vuelta), Venus gira **retrógrado** (`Venus.tsx`, signo negativo — es el único planeta del sistema con este comportamiento real, y además más lento que su propio año).
+- **Textura de Venus = solo la capa de nubes (`2k_venus_atmosphere.jpg`), sin capa de superficie separada** (a diferencia de la Tierra): en la realidad nunca se ve la superficie de Venus desde el espacio, la cubre una capa de nubes opaca de ácido sulfúrico — así que, a diferencia de `Earth.tsx` (superficie + nubes semi-transparentes en dos mallas), `Venus.tsx` es una sola malla opaca, más fiel a cómo se ve en la realidad.
 
 ## Decisiones de diseño que vale la pena recordar
 
@@ -93,8 +97,10 @@ Mismo enfoque que v1 (manual + Puppeteer contra Chrome headless), con un ajuste 
 
 ## Qué falta (fuera de alcance, a propósito)
 
-- Física orbital real, sistema solar completo más allá de Marte, `astronomy-engine`.
-- Colisiones/terreno irregular, gravedad planetaria, más de 2 cuerpos jugables.
+- **Mission arc propio para Mercurio/Venus**: hoy están en la escena (volables, con textura real) pero solo Marte dispara briefing/llamarada/llegada/debrief — no hay todavía selección de destino ni narrativa para los otros dos.
+- **Bajarse de la nave / explorar a pie**: el mecanismo real de "recolectar información" del planeta (más allá de datos narrativos que se desbloquean solo, sin nunca pisar tierra firme) — pieza central del alcance del juego, sin diseñar todavía. Va a necesitar gravedad de superficie, character controller, terreno, y muy probablemente generalizar la lógica de llegada/narrativa a los 4 planetas a la vez (no solo Marte).
+- Física orbital real, `astronomy-engine`.
+- Colisiones/terreno irregular en vuelo libre, gravedad planetaria sobre la nave.
 - Multiplayer, guardado/persistencia entre sesiones.
 - Sonido/música.
 - Soporte táctil/mobile, accesibilidad.
@@ -103,6 +109,6 @@ Mismo enfoque que v1 (manual + Puppeteer contra Chrome headless), con un ajuste 
 
 ## Próximos pasos sugeridos
 
-1. Sesión de pulido: conectar `leva` para tunear constantes de vuelo a ojo (`src/lib/constants.ts`), mejorar el marco de cabina en primera persona, ajustar sensibilidad del mouse.
-2. Inicializar repositorio git y conectar remoto (sigue pendiente, a pedido explícito del usuario).
-3. Evaluar `astronomy-engine` si se planea un tour completo del sistema solar más allá de Marte.
+1. Diseñar el mecanismo de "bajarse de la nave y explorar a pie" — el próximo salto grande de alcance, no una extensión menor del vuelo libre.
+2. Generalizar selección de destino/mission arc a los 4 planetas (hoy sigue siendo Tierra→Marte fijo).
+3. Sesión de pulido: conectar `leva` para tunear constantes de vuelo a ojo (`src/lib/constants.ts`), mejorar el marco de cabina en primera persona, ajustar sensibilidad del mouse.
