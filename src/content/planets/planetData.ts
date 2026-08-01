@@ -14,14 +14,17 @@ const REAL_RADIUS_KM = {
 
 /**
  * Unidades de escena por km real, aplicada igual a todos los planetas para preservar
- * las proporciones reales entre ellos. El valor en sí (Tierra = 6.000 unidades) es una
- * licencia artística — más grande que el primer pase (150 unidades) para que se sienta
- * colosal, pero todavía lejos de la relación 100% real (~91.000x la nave), que exigiría
- * reescribir el motor de vuelo con un "floating origin" por precisión de punto flotante
- * en WebGL. A esta magnitud (miles, no cientos de miles de unidades) seguimos cómodos
- * dentro del rango seguro de un float de 32 bits. Detalle completo en docs/GAME_DESIGN.md.
+ * las proporciones reales entre ellos — por eso Marte SIEMPRE da ~0.53x el radio de la
+ * Tierra automáticamente, sin importar qué tan grande sea este número (misma fórmula,
+ * mismo REAL_RADIUS_KM). El valor en sí (Tierra = 20.000 unidades) es una licencia
+ * artística — subió de 150 a 6.000 a 20.000 unidades en sucesivos pases para sentirse
+ * cada vez más colosal, pero todavía lejos de la relación 100% real (~91.000x la nave),
+ * que exigiría reescribir el motor de vuelo con un "floating origin" por precisión de
+ * punto flotante en WebGL. A este número, el punto más lejano de la escena (~500.000
+ * unidades) sigue bien dentro del rango seguro de un float de 32 bits — ver "Escala de
+ * los planetas" en docs/GAME_DESIGN.md para la tabla de precisión completa.
  */
-const RADIUS_SCALE = 6000 / REAL_RADIUS_KM.earth;
+const RADIUS_SCALE = 20000 / REAL_RADIUS_KM.earth;
 
 export const PLANETS: Record<PlanetId, PlanetData> = {
   earth: {
@@ -43,7 +46,7 @@ export const PLANETS: Record<PlanetId, PlanetData> = {
     // Posición deliberadamente NO escalada por la distancia real (225M km) — es una
     // escala de distancia aparte, mucho más comprimida, para que el viaje siga siendo
     // jugable. Ver RADIUS_SCALE arriba para el porqué de esta separación.
-    position: [39900, 1650, -13200],
+    position: [133000, 5500, -44000],
     textureMap: '/textures/2k_mars.jpg',
   },
 };
@@ -55,8 +58,8 @@ export const PLANETS: Record<PlanetId, PlanetData> = {
  * grande y visible, lejos del corredor Tierra-Marte, sin pretender ser 100% real.
  */
 export const SUN: SunData = {
-  radius: 4000,
-  position: [-45000, 6000, 24000],
+  radius: 13333,
+  position: [-150000, 20000, 80000],
   textureMap: '/textures/2k_sun.jpg',
 };
 
