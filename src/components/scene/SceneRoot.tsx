@@ -12,10 +12,12 @@ import Ship from './Ship';
 import CameraRig from './CameraRig';
 import FlightController from './FlightController';
 
+// Altura proporcional al radio (no un offset fijo) para que la vista inicial siempre
+// muestre la curvatura del planeta sin importar qué tan grande sea RADIUS_SCALE.
 const SHIP_START: [number, number, number] = [
   PLANETS.earth.position[0],
-  PLANETS.earth.position[1] + PLANETS.earth.radius + 4,
-  PLANETS.earth.position[2] + 10,
+  PLANETS.earth.position[1] + PLANETS.earth.radius * 1.03,
+  PLANETS.earth.position[2] + PLANETS.earth.radius * 0.07,
 ];
 
 export default function SceneRoot() {

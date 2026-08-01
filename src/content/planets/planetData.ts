@@ -14,12 +14,14 @@ const REAL_RADIUS_KM = {
 
 /**
  * Unidades de escena por km real, aplicada igual a todos los planetas para preservar
- * las proporciones reales entre ellos. El valor en sí (Tierra = 150 unidades) es una
- * licencia artística: a escala 100% real la Tierra sería ~91.000 veces más grande que
- * la nave — irrenderizable sin reescribir el motor de vuelo con un "floating origin".
- * Detalle completo en docs/GAME_DESIGN.md.
+ * las proporciones reales entre ellos. El valor en sí (Tierra = 6.000 unidades) es una
+ * licencia artística — más grande que el primer pase (150 unidades) para que se sienta
+ * colosal, pero todavía lejos de la relación 100% real (~91.000x la nave), que exigiría
+ * reescribir el motor de vuelo con un "floating origin" por precisión de punto flotante
+ * en WebGL. A esta magnitud (miles, no cientos de miles de unidades) seguimos cómodos
+ * dentro del rango seguro de un float de 32 bits. Detalle completo en docs/GAME_DESIGN.md.
  */
-const RADIUS_SCALE = 150 / REAL_RADIUS_KM.earth;
+const RADIUS_SCALE = 6000 / REAL_RADIUS_KM.earth;
 
 export const PLANETS: Record<PlanetId, PlanetData> = {
   earth: {
@@ -41,7 +43,7 @@ export const PLANETS: Record<PlanetId, PlanetData> = {
     // Posición deliberadamente NO escalada por la distancia real (225M km) — es una
     // escala de distancia aparte, mucho más comprimida, para que el viaje siga siendo
     // jugable. Ver RADIUS_SCALE arriba para el porqué de esta separación.
-    position: [13300, 550, -4400],
+    position: [39900, 1650, -13200],
     textureMap: '/textures/2k_mars.jpg',
   },
 };
@@ -53,8 +55,8 @@ export const PLANETS: Record<PlanetId, PlanetData> = {
  * grande y visible, lejos del corredor Tierra-Marte, sin pretender ser 100% real.
  */
 export const SUN: SunData = {
-  radius: 1000,
-  position: [-15000, 2000, 8000],
+  radius: 4000,
+  position: [-45000, 6000, 24000],
   textureMap: '/textures/2k_sun.jpg',
 };
 

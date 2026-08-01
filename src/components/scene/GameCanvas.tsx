@@ -11,7 +11,7 @@ export default function GameCanvas() {
     <div className="absolute inset-0">
       <Canvas
         dpr={[1, 2]}
-        camera={{ fov: 60, near: 0.5, far: 60000, position: [0, 6, 16] }}
+        camera={{ fov: 60, near: 0.5, far: 150000, position: [0, 6, 16] }}
         gl={{ logarithmicDepthBuffer: true }}
         onCreated={({ gl }) => {
           canvasRegistry.el = gl.domElement;

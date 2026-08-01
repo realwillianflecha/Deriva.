@@ -9,10 +9,10 @@ export default function Starfield() {
   return (
     <>
       <mesh>
-        <sphereGeometry args={[50000, 32, 32]} />
+        <sphereGeometry args={[120000, 32, 32]} />
         <meshBasicMaterial map={skyTex} side={BackSide} fog={false} />
       </mesh>
-      <Stars radius={20000} depth={2000} count={3000} factor={6} saturation={0} fade speed={0.3} />
+      <Stars radius={60000} depth={5000} count={3000} factor={6} saturation={0} fade speed={0.3} />
     </>
   );
 }
