@@ -12,7 +12,7 @@ export default function Starfield() {
         <sphereGeometry args={[400000, 32, 32]} />
         <meshBasicMaterial map={skyTex} side={BackSide} fog={false} />
       </mesh>
-      <Stars radius={200000} depth={16000} count={3000} factor={6} saturation={0} fade speed={0.3} />
+      <Stars radius={380000} depth={16000} count={3000} factor={6} saturation={0} fade speed={0.3} />
     </>
   );
 }
