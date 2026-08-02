@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Vector3 } from 'three';
+import { Quaternion, Vector3 } from 'three';
 import type { Group } from 'three';
 import { useUiStore } from '@/state/uiStore';
 import { clamp } from '@/lib/physics';
@@ -17,7 +17,13 @@ const desiredPosition = new Vector3();
 const lookTarget = new Vector3();
 const offsetWorld = new Vector3();
 
-export default function CameraRig({ shipRef }: { shipRef: React.RefObject<Group | null> }) {
+export default function CameraRig({
+  shipRef,
+  cameraLookRef,
+}: {
+  shipRef: React.RefObject<Group | null>;
+  cameraLookRef: React.RefObject<Quaternion>;
+}) {
   const zoom = useRef(DEFAULT_ZOOM);
 
   useEffect(() => {
@@ -32,17 +38,18 @@ export default function CameraRig({ shipRef }: { shipRef: React.RefObject<Group 
   useFrame(({ camera }) => {
     const ship = shipRef.current;
     if (!ship) return;
+    const look = cameraLookRef.current;
 
     const cameraMode = useUiStore.getState().cameraMode;
 
     if (cameraMode === 'first') {
-      offsetWorld.copy(COCKPIT_OFFSET).applyQuaternion(ship.quaternion);
+      offsetWorld.copy(COCKPIT_OFFSET).applyQuaternion(look);
       camera.position.copy(ship.position).add(offsetWorld);
-      camera.quaternion.copy(ship.quaternion);
+      camera.quaternion.copy(look);
       return;
     }
 
-    offsetWorld.copy(THIRD_PERSON_DIR).multiplyScalar(zoom.current).applyQuaternion(ship.quaternion);
+    offsetWorld.copy(THIRD_PERSON_DIR).multiplyScalar(zoom.current).applyQuaternion(look);
     desiredPosition.copy(ship.position).add(offsetWorld);
     camera.position.copy(desiredPosition);
 

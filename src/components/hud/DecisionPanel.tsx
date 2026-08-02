@@ -18,7 +18,7 @@ export default function DecisionPanel() {
   const visible = narrativeVisible && phase !== 'debrief' && node;
 
   const handleChoice = (choice: NarrativeChoice) => {
-    if (choice.action === 'start-flight' || choice.action === 'resume-flight') {
+    if (choice.action === 'start-flight' || choice.action === 'resume-flight' || choice.action === 'begin-descent') {
       requestFlightPointerLock();
     }
     selectChoice(choice.id);

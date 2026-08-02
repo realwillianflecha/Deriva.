@@ -82,7 +82,7 @@ export const NARRATIVE_NODES: Record<string, NarrativeNode> = {
         next: 'landing-brief',
         setSite: 'jezero',
         factId: 'jezero-fact',
-        action: 'complete-mission',
+        action: 'begin-descent',
       },
       {
         id: 'olympus',
@@ -90,7 +90,7 @@ export const NARRATIVE_NODES: Record<string, NarrativeNode> = {
         next: 'landing-brief',
         setSite: 'olympus',
         factId: 'olympus-fact',
-        action: 'complete-mission',
+        action: 'begin-descent',
       },
     ],
   },

@@ -7,12 +7,13 @@ import { SHIP_BOOST_MAX_SPEED } from '@/lib/constants';
 
 export default function FlightHUD() {
   const phase = useGameStore((s) => s.phase);
+  const flightMode = useGameStore((s) => s.flightMode);
   const velocityMagnitude = useGameStore((s) => s.velocityMagnitude);
   const fuel = useGameStore((s) => s.fuel);
   const distanceToMars = useGameStore((s) => s.distanceToMars);
   const missionFlags = useGameStore((s) => s.missionFlags);
 
-  if (phase !== 'flight') return null;
+  if (phase !== 'flight' || flightMode !== 'space') return null;
 
   const fuelMax = missionFlags.extraFuel ? 125 : 100;
 

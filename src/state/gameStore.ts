@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { NARRATIVE_NODES } from '@/content/narrative/nodes';
 import { FUEL_MAX } from '@/lib/constants';
-import type { FlightSummary, GamePhase, HeadingScreen, LandingSiteId } from './types';
+import type { FlightMode, FlightSummary, GamePhase, HeadingScreen, LandingSiteId, PlanetId } from './types';
 
 interface GameState {
   phase: GamePhase;
@@ -20,6 +20,11 @@ interface GameState {
 
   flightSummary: FlightSummary | null;
 
+  flightMode: FlightMode;
+  surfacePlanetId: PlanetId | null;
+  altitude: number;
+  verticalSpeed: number;
+
   selectChoice: (choiceId: string) => void;
   updateNav: (data: Partial<{
     fuel: number;
@@ -27,9 +32,17 @@ interface GameState {
     distanceToMars: number;
     travelProgress: number;
     headingScreen: HeadingScreen;
+    altitude: number;
+    verticalSpeed: number;
   }>) => void;
   triggerFlare: () => void;
   completeFlight: (summary: FlightSummary) => void;
+  beginDescent: (planetId: PlanetId) => void;
+  arriveAtSurface: () => void;
+  touchdown: () => void;
+  beginAscent: () => void;
+  beginExit: () => void;
+  returnToSpace: () => void;
   resetGame: () => void;
 }
 
@@ -49,6 +62,13 @@ const initialState = {
   headingScreen: { onScreen: true, angle: 0 } as HeadingScreen,
 
   flightSummary: null as FlightSummary | null,
+
+  // Se arranca parados en la Tierra, no flotando en el espacio -- despegar (acción
+  // 'start-flight') es lo que dispara la secuencia de ascenso hacia el espacio.
+  flightMode: 'landed' as FlightMode,
+  surfacePlanetId: 'earth' as PlanetId | null,
+  altitude: 0,
+  verticalSpeed: 0,
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -85,11 +105,20 @@ export const useGameStore = create<GameState>((set, get) => ({
         phase: 'flight',
         narrativeVisible: false,
         fuel: missionFlags.extraFuel ? FUEL_MAX * 1.25 : FUEL_MAX,
+        // Arranca 'landed' en la Tierra -- despegar es un lanzamiento real (ascending),
+        // no el disparador por sostener Espacio (SURFACE_LIFTOFF_HOLD_SECONDS) que usa
+        // el resto de los despegues; acá el click del jugador YA es la decisión de
+        // despegar.
+        flightMode: 'ascending',
       });
     } else if (choice.action === 'resume-flight') {
       set({ ...base, narrativeVisible: false });
-    } else if (choice.action === 'complete-mission') {
-      set({ ...base, phase: 'debrief' });
+    } else if (choice.action === 'begin-descent') {
+      // narrativeVisible:false es necesario acá — si no, PointerLockManager fuerza
+      // exitPointerLock() en cada cambio de store durante todo el descenso (lee
+      // narrativeVisible || phase!=='flight', y phase se mantiene 'flight' a propósito
+      // hasta que la nave toca tierra).
+      set({ ...base, narrativeVisible: false, flightMode: 'entering', surfacePlanetId: 'mars' });
     } else {
       set({ ...base, narrativeVisible: true });
     }
@@ -106,6 +135,24 @@ export const useGameStore = create<GameState>((set, get) => ({
       currentNodeId: 'landing-brief',
       narrativeVisible: true,
     }),
+
+  beginDescent: (planetId) => set({ flightMode: 'entering', surfacePlanetId: planetId }),
+
+  arriveAtSurface: () => set({ flightMode: 'descending' }),
+
+  touchdown: () =>
+    set((state) => ({
+      flightMode: 'landed',
+      ...(state.surfacePlanetId === 'mars' ? { phase: 'debrief' as GamePhase } : {}),
+    })),
+
+  beginAscent: () => set({ flightMode: 'ascending' }),
+
+  beginExit: () => set({ flightMode: 'exiting' }),
+
+  // surfacePlanetId queda seteado a propósito -- FlightController lo necesita al montar
+  // de nuevo para saber sobre qué planeta reposicionar la nave, y lo limpia él mismo.
+  returnToSpace: () => set({ flightMode: 'space' }),
 
   resetGame: () => set({ ...initialState }),
 }));

@@ -4,9 +4,10 @@ import { useGameStore } from '@/state/gameStore';
 
 export default function TargetCompass() {
   const phase = useGameStore((s) => s.phase);
+  const flightMode = useGameStore((s) => s.flightMode);
   const headingScreen = useGameStore((s) => s.headingScreen);
 
-  if (phase !== 'flight' || headingScreen.onScreen) return null;
+  if (phase !== 'flight' || flightMode !== 'space' || headingScreen.onScreen) return null;
 
   const radius = 260;
   const x = Math.cos(headingScreen.angle) * radius;

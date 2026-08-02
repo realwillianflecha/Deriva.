@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Euler, Quaternion, Vector3 } from 'three';
 import type { Group } from 'three';
@@ -9,6 +9,7 @@ import { canvasRegistry } from '@/lib/canvasRegistry';
 import { clamp } from '@/lib/physics';
 import { useGameStore } from '@/state/gameStore';
 import { PLANETS, EARTH_MARS_DISTANCE } from '@/content/planets/planetData';
+import type { PlanetId } from '@/state/types';
 import {
   SHIP_BASE_ACCEL,
   SHIP_MAX_SPEED,
@@ -20,7 +21,8 @@ import {
   FUEL_BURN_RATE,
   FUEL_BOOST_EXTRA_BURN_RATE,
   SHIP_ROTATION_SMOOTHING,
-  ARRIVAL_RADIUS,
+  ARRIVAL_RADIUS_FACTOR,
+  DEPARTURE_HYSTERESIS_FACTOR,
   FLARE_PROGRESS_THRESHOLD,
   FLARE_FALLBACK_SECONDS,
   NAV_UPDATE_INTERVAL,
@@ -32,8 +34,29 @@ const marsNdc = new Vector3();
 const euler = new Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new Quaternion();
 const MARS_POS = new Vector3(...PLANETS.mars.position);
+const MARS_ARRIVAL_RADIUS = PLANETS.mars.radius * ARRIVAL_RADIUS_FACTOR;
 
-export default function FlightController({ shipRef }: { shipRef: React.RefObject<Group | null> }) {
+// Destinos "sin misión" — llegar dispara el aterrizaje directo (sin diálogo de sitio),
+// a diferencia de Marte que sigue pasando por landing-brief. Cada uno con su propio radio
+// de llegada proporcional a su propio tamaño real.
+type OtherPlanetId = 'earth' | 'mercury' | 'venus';
+const OTHER_PLANETS: { id: OtherPlanetId; pos: Vector3; arrivalRadius: number }[] = (
+  ['earth', 'mercury', 'venus'] as const
+).map((id) => ({
+  id,
+  pos: new Vector3(...PLANETS[id].position),
+  arrivalRadius: PLANETS[id].radius * ARRIVAL_RADIUS_FACTOR,
+}));
+
+const repositionOffset = new Vector3();
+
+export default function FlightController({
+  shipRef,
+  cameraLookRef,
+}: {
+  shipRef: React.RefObject<Group | null>;
+  cameraLookRef: React.RefObject<Quaternion>;
+}) {
   const { input, consumeLook } = useFlightControls();
 
   const velocity = useRef(new Vector3());
@@ -48,6 +71,31 @@ export default function FlightController({ shipRef }: { shipRef: React.RefObject
   const arrived = useRef(false);
   const fuelInitialized = useRef(false);
   const fuelMax = useRef(FUEL_MAX);
+  const awayFromPlanet = useRef<Record<OtherPlanetId, boolean>>({
+    earth: false,
+    mercury: false,
+    venus: false,
+  });
+
+  // Si venimos de despegar de un planeta (surfacePlanetId seteado por el mundo de
+  // superficie), reposicionar la nave arriba de ESE planeta al remontar — misma fórmula
+  // proporcional que SHIP_START en SceneRoot, generalizada a cualquier planeta.
+  useLayoutEffect(() => {
+    const ship = shipRef.current;
+    const surfacePlanetId = useGameStore.getState().surfacePlanetId;
+    if (!ship || !surfacePlanetId) return;
+
+    const planet = PLANETS[surfacePlanetId as PlanetId];
+    ship.position.set(
+      planet.position[0],
+      planet.position[1] + planet.radius * 1.03,
+      planet.position[2] + planet.radius * 0.07,
+    );
+    repositionOffset.set(0, planet.radius * 1.03, planet.radius * 0.07).normalize();
+    velocity.current.copy(repositionOffset).multiplyScalar(80);
+    useGameStore.setState({ surfacePlanetId: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useFrame(({ camera }, delta) => {
     const ship = shipRef.current;
@@ -55,6 +103,15 @@ export default function FlightController({ shipRef }: { shipRef: React.RefObject
 
     const store = useGameStore.getState();
     if (store.phase !== 'flight') return;
+
+    if (store.flightMode === 'entering') {
+      // El destello tapa el swap de mundo, pero el fade-in tarda un rato en llegar a
+      // blanco total -- mientras tanto la escena espacial sigue siendo visible, así que
+      // la nave tiene que seguir en línea recta a la última velocidad conocida, sin
+      // frenar de golpe (nada de input/gatillos/daño acá, solo seguir de largo).
+      ship.position.addScaledVector(velocity.current, delta);
+      return;
+    }
 
     if (!fuelInitialized.current) {
       fuelRef.current = store.fuel;
@@ -75,6 +132,10 @@ export default function FlightController({ shipRef }: { shipRef: React.RefObject
     targetQuaternion.setFromEuler(euler);
     const rotationLerp = 1 - Math.exp(-SHIP_ROTATION_SMOOTHING * delta);
     ship.quaternion.slerp(targetQuaternion, rotationLerp);
+    // En vuelo libre, mirar y orientar la nave son la misma cosa — se espeja acá para que
+    // CameraRig (que siempre lee de cameraLookRef, nunca de ship.quaternion directo) se
+    // comporte igual que antes en este modo.
+    cameraLookRef.current.copy(ship.quaternion);
 
     if (controlsActive) {
       const i = input.current;
@@ -131,7 +192,7 @@ export default function FlightController({ shipRef }: { shipRef: React.RefObject
     if (
       !arrived.current &&
       !store.narrativeVisible &&
-      distanceToMars - PLANETS.mars.radius <= ARRIVAL_RADIUS
+      distanceToMars - PLANETS.mars.radius <= MARS_ARRIVAL_RADIUS
     ) {
       arrived.current = true;
       if (typeof document !== 'undefined') document.exitPointerLock();
@@ -141,6 +202,27 @@ export default function FlightController({ shipRef }: { shipRef: React.RefObject
         travelTimeSeconds: elapsed.current,
         boostUsed: usedBoost.current,
       });
+    }
+
+    // Tierra/Venus/Mercurio no tienen misión narrativa — llegar dispara el aterrizaje
+    // directo. Histéresis de salida: hay que haberse alejado más allá de
+    // arrivalRadius*DEPARTURE_HYSTERESIS_FACTOR al menos una vez antes de que se arme el
+    // disparador de nuevo — si no, la Tierra (donde arranca la nave, ya adentro de su
+    // propio radio de llegada) dispararía el aterrizaje en el primer frame de vuelo.
+    if (!store.narrativeVisible) {
+      for (const { id, pos, arrivalRadius } of OTHER_PLANETS) {
+        const dist = ship.position.distanceTo(pos) - PLANETS[id].radius;
+        if (dist > arrivalRadius * DEPARTURE_HYSTERESIS_FACTOR) {
+          awayFromPlanet.current[id] = true;
+        } else if (awayFromPlanet.current[id] && dist <= arrivalRadius) {
+          awayFromPlanet.current[id] = false;
+          // A diferencia de Marte (que sí suelta el mouse, para mostrar el panel de
+          // elegir sitio), acá no hay ningún panel narrativo — el pointer lock se
+          // mantiene enganchado sin interrupción durante toda la secuencia de aterrizaje.
+          useGameStore.getState().beginDescent(id);
+          break;
+        }
+      }
     }
 
     navAccum.current += delta;

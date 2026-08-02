@@ -5,10 +5,11 @@ import Panel from '@/components/ui/Panel';
 
 export default function TravelProgressBar() {
   const phase = useGameStore((s) => s.phase);
+  const flightMode = useGameStore((s) => s.flightMode);
   const travelProgress = useGameStore((s) => s.travelProgress);
   const narrativeVisible = useGameStore((s) => s.narrativeVisible);
 
-  if (phase !== 'flight') return null;
+  if (phase !== 'flight' || flightMode !== 'space') return null;
 
   return (
     <div className="pointer-events-none absolute left-1/2 top-4 w-72 -translate-x-1/2 sm:top-8">

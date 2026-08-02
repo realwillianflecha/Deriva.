@@ -4,6 +4,13 @@ export type GamePhase = 'briefing' | 'flight' | 'debrief';
 
 export type LandingSiteId = 'jezero' | 'olympus';
 
+/**
+ * Eje de estado independiente de `GamePhase` (mismo patrón que `narrativeVisible`, que ya
+ * se superpone a `phase` sin tocarlo). `phase` sigue valiendo 'flight' durante toda esta
+ * secuencia — esto solo describe qué sub-sistema de vuelo está activo.
+ */
+export type FlightMode = 'space' | 'entering' | 'descending' | 'landed' | 'ascending' | 'exiting';
+
 export interface FlightSummary {
   fuelRemainingPercent: number;
   topSpeed: number;
@@ -18,7 +25,7 @@ export interface NarrativeChoice {
   setFlags?: Record<string, boolean>;
   setSite?: LandingSiteId;
   factId?: string;
-  action?: 'start-flight' | 'resume-flight' | 'complete-mission';
+  action?: 'start-flight' | 'resume-flight' | 'begin-descent';
 }
 
 export interface NarrativeNode {
