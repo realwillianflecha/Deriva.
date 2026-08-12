@@ -10,9 +10,13 @@ import { clamp } from '@/lib/physics';
 
 const THIRD_PERSON_DIR = new Vector3(0, 3, 9).normalize();
 const COCKPIT_OFFSET = new Vector3(0, 0.3, -1.0);
-const MIN_ZOOM = 4;
-const MAX_ZOOM = 40;
-const DEFAULT_ZOOM = 9;
+// Escalados ~10x junto con SHIP_MODEL_SCALE (ver Ship.tsx) -- la nave pasó de ~6,9m a
+// ~70m reales, así que la distancia de cámara en tercera persona tiene que crecer en la
+// misma proporción para seguir encuadrándola igual de bien (si no, quedaría pegada casi
+// adentro del modelo al valor por defecto viejo).
+const MIN_ZOOM = 40;
+const MAX_ZOOM = 400;
+const DEFAULT_ZOOM = 90;
 
 const desiredPosition = new Vector3();
 const lookTarget = new Vector3();

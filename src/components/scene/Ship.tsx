@@ -6,7 +6,13 @@ import { useUiStore } from '@/state/uiStore';
 import { useGameStore } from '@/state/gameStore';
 import { FalconHeavyModel } from './generated/FalconHeavyModel';
 
-const SHIP_MODEL_SCALE = 0.7;
+// Medido: a escala 0.7 el modelo da ~6,9m de alto -- ni cerca de un Falcon Heavy real
+// (~70m). Esa escala se había tuneado a ojo para que la cabina en primera persona se
+// sintiera bien (ver CAMERA_LOCAL, que es independiente de esta escala -- no cambia acá),
+// nadie la había mirado nunca desde afuera parado al lado. Recalculada para que la altura
+// real del modelo dé la altura real del cohete -- así se ve gigante al lado del personaje
+// (EYE_HEIGHT=1.7) en vez de del mismo porte.
+const SHIP_MODEL_SCALE = 7.1;
 const MODEL_RECENTER: [number, number, number] = [0.046, 0.889, -0.002];
 const CAMERA_LOCAL: [number, number, number] = [0, 0.3, -1.0];
 
