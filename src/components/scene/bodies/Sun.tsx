@@ -2,9 +2,10 @@
 
 import { useTexture } from '@react-three/drei';
 import { SUN } from '@/content/planets/planetData';
+import { srgb } from '@/lib/textures';
 
 export default function Sun() {
-  const sunTex = useTexture(SUN.textureMap);
+  const sunTex = srgb(useTexture(SUN.textureMap));
 
   return (
     <mesh position={SUN.position}>

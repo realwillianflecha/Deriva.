@@ -1,8 +1,9 @@
 'use client';
 
-import { forwardRef } from 'react';
-import type { Group } from 'three';
+import { forwardRef, useEffect, useRef } from 'react';
+import type { Group, Mesh } from 'three';
 import { useUiStore } from '@/state/uiStore';
+import { useGameStore } from '@/state/gameStore';
 import { FalconHeavyModel } from './generated/FalconHeavyModel';
 
 const SHIP_MODEL_SCALE = 0.7;
@@ -14,11 +15,31 @@ const Ship = forwardRef<Group, { position?: [number, number, number] }>(function
   ref,
 ) {
   const cameraMode = useUiStore((s) => s.cameraMode);
-  const inCockpit = cameraMode === 'first';
+  const flightMode = useGameStore((s) => s.flightMode);
+  // Sin el chequeo de flightMode, bajarse de la nave con la cámara todavía en modo
+  // primera persona (de antes de aterrizar) escondería el casco exterior a pesar de estar
+  // mirándolo desde afuera, parado al lado.
+  const inCockpit = cameraMode === 'first' && flightMode !== 'onfoot';
+  const modelGroupRef = useRef<Group>(null);
+
+  // FalconHeavyModel es generado por gltfjsx ("No editar a mano") y no trae castShadow en
+  // sus <mesh> -- en vez de tocar el archivo generado, se recorre una sola vez acá afuera
+  // para que la nave parada proyecte sombra real sobre el terreno en vez de flotar sin
+  // contacto visual con el piso.
+  useEffect(() => {
+    modelGroupRef.current?.traverse((obj) => {
+      const mesh = obj as Mesh;
+      if (mesh.isMesh) {
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+    });
+  }, []);
 
   return (
     <group ref={ref} position={position}>
       <group
+        ref={modelGroupRef}
         visible={!inCockpit}
         rotation={[-Math.PI / 2, 0, 0]}
         scale={SHIP_MODEL_SCALE}

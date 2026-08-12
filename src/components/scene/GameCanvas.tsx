@@ -11,6 +11,7 @@ export default function GameCanvas() {
     <div className="absolute inset-0">
       <Canvas
         dpr={[1, 2]}
+        shadows="soft"
         camera={{ fov: 60, near: 0.5, far: 500000, position: [0, 6, 16] }}
         gl={{ logarithmicDepthBuffer: true }}
         onCreated={({ gl }) => {

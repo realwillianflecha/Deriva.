@@ -56,6 +56,10 @@ export default function DescentController({
   // la nave cambia más adelante (ver charla sobre mejorarlo en Blender) esto se
   // recalcula solo.
   const groundClearance = useRef(0);
+  // Arranca en true por la misma razón que en CharacterController: evita un falso flanco
+  // si el jugador sigue apretando E en el mismo frame en que este componente se remonta
+  // (ej. al volver de 'onfoot').
+  const prevInteract = useRef(true);
 
   // Se ejecuta una sola vez, al montar (que coincide con el instante en que flightMode
   // pasa a 'descending' -- persiste montado durante landed/ascending sin volver a correr).
@@ -87,6 +91,7 @@ export default function DescentController({
     // el juego arranca 'landed' en la Tierra, no hay caída que continuar: quieta en 0.
     verticalVelocity.current = enteringFromSpace ? -DESCENT_MAX_FALL_SPEED : 0;
     liftoffHoldTime.current = 0;
+    prevInteract.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -134,6 +139,13 @@ export default function DescentController({
       } else {
         liftoffHoldTime.current = 0;
       }
+
+      const interactHeld = controlsActive && input.current.interact;
+      const interactPressed = interactHeld && !prevInteract.current;
+      prevInteract.current = interactHeld;
+      if (interactPressed) {
+        useGameStore.getState().exitShip();
+      }
     } else if (store.flightMode === 'descending' || store.flightMode === 'ascending') {
       const thrustAccel = thrustHeld ? gravity * DESCENT_THRUST_MULTIPLIER : 0;
       verticalVelocity.current += (thrustAccel - gravity) * delta;
@@ -144,18 +156,33 @@ export default function DescentController({
       // El piso frena en groundClearance (donde la BASE del modelo toca y=0, no donde
       // está el origen del grupo) en los dos modos -- en 'ascending', si no se sostiene
       // Espacio a tiempo, la gravedad podría empujar la posición por debajo del piso.
-      if (ship.position.y <= groundClearance.current) {
+      // hitFloor/fellBack se leen ANTES de zombear verticalVelocity a 0 más abajo, para
+      // poder distinguir "recién arrancando a ascender, todavía pegado al piso" (velocidad
+      // positiva, el empuje ya está ganando) de "se quedó sin empuje y volvió a caer"
+      // (velocidad negativa o cero) — solo el segundo caso cuenta como aterrizaje real.
+      const hitFloor = ship.position.y <= groundClearance.current;
+      const fellBack = hitFloor && verticalVelocity.current <= 0;
+      if (hitFloor) {
         ship.position.y = groundClearance.current;
-        verticalVelocity.current = 0;
       }
 
-      if (store.flightMode === 'descending' && ship.position.y <= groundClearance.current) {
+      if (store.flightMode === 'descending' && hitFloor) {
         useGameStore.getState().touchdown();
-      } else if (
-        store.flightMode === 'ascending' &&
-        ship.position.y >= groundClearance.current + SURFACE_ASCEND_EXIT_ALTITUDE
-      ) {
-        useGameStore.getState().beginExit();
+      } else if (store.flightMode === 'ascending') {
+        if (ship.position.y >= groundClearance.current + SURFACE_ASCEND_EXIT_ALTITUDE) {
+          useGameStore.getState().beginExit();
+        } else if (fellBack) {
+          // Soltó Espacio antes de salir de la atmósfera: volvió a tocar tierra, no se
+          // queda trabado en 'ascending' sin poder hacer nada más. Mismo touchdown() que
+          // cualquier otro aterrizaje real, para que 'landed' vuelva a habilitar bajarse
+          // (E) y, si quiere, reintentar el despegue — encontrado jugando: sin este fix,
+          // quedaba imposible bajarse de la nave después de un despegue frustrado.
+          useGameStore.getState().touchdown();
+        }
+      }
+
+      if (hitFloor) {
+        verticalVelocity.current = 0;
       }
     }
 

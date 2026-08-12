@@ -12,6 +12,7 @@ export interface FlightInputState {
   up: boolean;
   down: boolean;
   boost: boolean;
+  interact: boolean;
 }
 
 const KEY_MAP: Partial<Record<string, keyof FlightInputState>> = {
@@ -30,6 +31,8 @@ const KEY_MAP: Partial<Record<string, keyof FlightInputState>> = {
   ' ': 'up',
   Shift: 'boost',
   Control: 'down',
+  e: 'interact',
+  E: 'interact',
 };
 
 export function useFlightControls() {
@@ -41,6 +44,7 @@ export function useFlightControls() {
     up: false,
     down: false,
     boost: false,
+    interact: false,
   });
   const look = useRef({ dx: 0, dy: 0 });
 

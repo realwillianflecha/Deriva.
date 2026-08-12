@@ -9,7 +9,7 @@ export type LandingSiteId = 'jezero' | 'olympus';
  * se superpone a `phase` sin tocarlo). `phase` sigue valiendo 'flight' durante toda esta
  * secuencia — esto solo describe qué sub-sistema de vuelo está activo.
  */
-export type FlightMode = 'space' | 'entering' | 'descending' | 'landed' | 'ascending' | 'exiting';
+export type FlightMode = 'space' | 'entering' | 'descending' | 'landed' | 'onfoot' | 'ascending' | 'exiting';
 
 export interface FlightSummary {
   fuelRemainingPercent: number;

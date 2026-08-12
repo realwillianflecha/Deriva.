@@ -5,11 +5,12 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import type { Mesh } from 'three';
 import { PLANETS } from '@/content/planets/planetData';
+import { srgb } from '@/lib/textures';
 
 export default function Mars() {
   const meshRef = useRef<Mesh>(null);
   const { position, radius, textureMap } = PLANETS.mars;
-  const marsTex = useTexture(textureMap);
+  const marsTex = srgb(useTexture(textureMap));
 
   useFrame((_, delta) => {
     if (meshRef.current) meshRef.current.rotation.y += delta * 0.028;

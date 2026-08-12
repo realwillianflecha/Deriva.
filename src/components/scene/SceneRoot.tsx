@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { Quaternion } from 'three';
+import { Quaternion, Vector3 } from 'three';
 import type { Group } from 'three';
 import { useGameStore } from '@/state/gameStore';
 import { PLANETS, SUN } from '@/content/planets/planetData';
@@ -15,6 +15,7 @@ import Ship from './Ship';
 import CameraRig from './CameraRig';
 import FlightController from './FlightController';
 import DescentController from './DescentController';
+import CharacterController from './CharacterController';
 import SurfaceWorld from './SurfaceWorld';
 
 // Altura proporcional al radio (no un offset fijo) para que la vista inicial siempre
@@ -30,6 +31,7 @@ export default function SceneRoot() {
   const flightMode = useGameStore((s) => s.flightMode);
   const shipRef = useRef<Group>(null);
   const cameraLookRef = useRef(new Quaternion());
+  const characterPositionRef = useRef(new Vector3());
 
   // Desfasadas a propósito respecto a 'entering'/'exiting': el mundo viejo se mantiene
   // montado mientras el destello aparece encima, y el nuevo se mantiene montado mientras
@@ -39,6 +41,7 @@ export default function SceneRoot() {
   const showSurface =
     flightMode === 'descending' ||
     flightMode === 'landed' ||
+    flightMode === 'onfoot' ||
     flightMode === 'ascending' ||
     flightMode === 'exiting';
 
@@ -69,12 +72,20 @@ export default function SceneRoot() {
           para que su efecto de montaje pare a la nave en el piso desde el primer frame,
           no recién cuando el jugador hace click en despegar. También montado durante
           'exiting' por la misma razón que 'entering' arriba: seguir con la última
-          velocidad vertical mientras el destello recién empieza. */}
+          velocidad vertical mientras el destello recién empieza.
+          A PROPÓSITO no incluye 'onfoot': tanto este componente como CharacterController
+          llaman a useFlightControls() por su cuenta — si los dos estuvieran montados a la
+          vez, pelearían por escribir cameraLookRef en el mismo frame (mouse-look roto).
+          Al bajarse de la nave este componente simplemente se desmonta y deja de correr,
+          que alcanza para que la nave quede "quieta" (nada la vuelve a mover). */}
       {(flightMode === 'descending' ||
         flightMode === 'landed' ||
         flightMode === 'ascending' ||
         flightMode === 'exiting') && <DescentController shipRef={shipRef} cameraLookRef={cameraLookRef} />}
-      <CameraRig shipRef={shipRef} cameraLookRef={cameraLookRef} />
+      {flightMode === 'onfoot' && (
+        <CharacterController characterPositionRef={characterPositionRef} cameraLookRef={cameraLookRef} />
+      )}
+      <CameraRig shipRef={shipRef} characterPositionRef={characterPositionRef} cameraLookRef={cameraLookRef} />
     </>
   );
 }

@@ -5,11 +5,12 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import type { Mesh } from 'three';
 import { PLANETS } from '@/content/planets/planetData';
+import { srgb } from '@/lib/textures';
 
 export default function Mercury() {
   const meshRef = useRef<Mesh>(null);
   const { position, radius, textureMap } = PLANETS.mercury;
-  const mercuryTex = useTexture(textureMap);
+  const mercuryTex = srgb(useTexture(textureMap));
 
   useFrame((_, delta) => {
     // Mercurio rota muy lento en la realidad (~59 días terrestres); acá se acelera

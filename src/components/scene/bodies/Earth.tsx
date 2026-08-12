@@ -5,12 +5,13 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import type { Mesh } from 'three';
 import { PLANETS } from '@/content/planets/planetData';
+import { srgb } from '@/lib/textures';
 
 export default function Earth() {
   const surfaceRef = useRef<Mesh>(null);
   const cloudsRef = useRef<Mesh>(null);
   const { position, radius, textureMap, cloudsMap } = PLANETS.earth;
-  const [surfaceTex, cloudsTex] = useTexture([textureMap, cloudsMap!]);
+  const [surfaceTex, cloudsTex] = useTexture([textureMap, cloudsMap!]).map(srgb);
 
   useFrame((_, delta) => {
     if (surfaceRef.current) surfaceRef.current.rotation.y += delta * 0.03;

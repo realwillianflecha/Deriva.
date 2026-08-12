@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import { Quaternion, Vector3 } from 'three';
 import type { Group } from 'three';
 import { useUiStore } from '@/state/uiStore';
+import { useGameStore } from '@/state/gameStore';
 import { clamp } from '@/lib/physics';
 
 const THIRD_PERSON_DIR = new Vector3(0, 3, 9).normalize();
@@ -19,9 +20,11 @@ const offsetWorld = new Vector3();
 
 export default function CameraRig({
   shipRef,
+  characterPositionRef,
   cameraLookRef,
 }: {
   shipRef: React.RefObject<Group | null>;
+  characterPositionRef: React.RefObject<Vector3>;
   cameraLookRef: React.RefObject<Quaternion>;
 }) {
   const zoom = useRef(DEFAULT_ZOOM);
@@ -36,9 +39,19 @@ export default function CameraRig({
   }, []);
 
   useFrame(({ camera }) => {
+    const look = cameraLookRef.current;
+
+    // A pie siempre en primera persona, sobre el personaje — no tiene sentido un modo
+    // tercera persona sin un cuerpo visible que mirar, y así no hace falta bloquear la
+    // tecla C mientras se camina (el toggle simplemente no se lee acá).
+    if (useGameStore.getState().flightMode === 'onfoot') {
+      camera.position.copy(characterPositionRef.current);
+      camera.quaternion.copy(look);
+      return;
+    }
+
     const ship = shipRef.current;
     if (!ship) return;
-    const look = cameraLookRef.current;
 
     const cameraMode = useUiStore.getState().cameraMode;
 

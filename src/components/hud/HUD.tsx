@@ -8,6 +8,7 @@ import TargetCompass from './TargetCompass';
 import PointerLockPrompt from './PointerLockPrompt';
 import PointerLockManager from './PointerLockManager';
 import AtmosphericTransition from './AtmosphericTransition';
+import InteractPrompt from './InteractPrompt';
 
 // MissionLog (el panel de fin de misión con los datos del vuelo) está deliberadamente
 // deshabilitado a pedido del usuario -- "molesta". El componente sigue entero en
@@ -22,6 +23,7 @@ export default function HUD() {
       <DescentHUD />
       <TravelProgressBar />
       <TargetCompass />
+      <InteractPrompt />
       <PointerLockPrompt />
       <DecisionPanel />
       <AtmosphericTransition />

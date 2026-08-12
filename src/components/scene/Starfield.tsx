@@ -2,9 +2,10 @@
 
 import { Stars, useTexture } from '@react-three/drei';
 import { BackSide } from 'three';
+import { srgb } from '@/lib/textures';
 
 export default function Starfield() {
-  const skyTex = useTexture('/textures/2k_stars_milky_way.jpg');
+  const skyTex = srgb(useTexture('/textures/2k_stars_milky_way.jpg'));
 
   return (
     <>

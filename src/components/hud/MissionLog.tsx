@@ -87,7 +87,8 @@ export default function MissionLog() {
 
           <p className="mt-4 text-center text-[10px] leading-relaxed text-white/30">
             Texturas planetarias: Solar System Scope (solarsystemscope.com/textures), CC BY 4.0. Modelo de
-            nave: &quot;SpaceX Falcon Heavy&quot; por Carwyn Pelley (poly.pizza), CC BY 3.0.
+            nave: &quot;SpaceX Falcon Heavy&quot; por Carwyn Pelley (poly.pizza), CC BY 3.0. Texturas de
+            terreno: ambientCG.com (Grass004, Ground054, Rock026), CC0. Sonido de reentrada: Mixkit.
           </p>
         </Panel>
       </motion.div>

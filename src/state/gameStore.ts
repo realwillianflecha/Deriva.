@@ -24,6 +24,7 @@ interface GameState {
   surfacePlanetId: PlanetId | null;
   altitude: number;
   verticalSpeed: number;
+  nearShip: boolean;
 
   selectChoice: (choiceId: string) => void;
   updateNav: (data: Partial<{
@@ -34,6 +35,7 @@ interface GameState {
     headingScreen: HeadingScreen;
     altitude: number;
     verticalSpeed: number;
+    nearShip: boolean;
   }>) => void;
   triggerFlare: () => void;
   completeFlight: (summary: FlightSummary) => void;
@@ -43,6 +45,8 @@ interface GameState {
   beginAscent: () => void;
   beginExit: () => void;
   returnToSpace: () => void;
+  exitShip: () => void;
+  enterShip: () => void;
   resetGame: () => void;
 }
 
@@ -69,6 +73,7 @@ const initialState = {
   surfacePlanetId: 'earth' as PlanetId | null,
   altitude: 0,
   verticalSpeed: 0,
+  nearShip: false,
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -105,11 +110,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         phase: 'flight',
         narrativeVisible: false,
         fuel: missionFlags.extraFuel ? FUEL_MAX * 1.25 : FUEL_MAX,
-        // Arranca 'landed' en la Tierra -- despegar es un lanzamiento real (ascending),
-        // no el disparador por sostener Espacio (SURFACE_LIFTOFF_HOLD_SECONDS) que usa
-        // el resto de los despegues; acá el click del jugador YA es la decisión de
-        // despegar.
-        flightMode: 'ascending',
+        // Arranca 'landed' (no 'ascending' directo): con el modo a pie ya sumado, este
+        // click ya no es automáticamente "la decisión de despegar" — el jugador recién
+        // ahora tiene control activo y puede elegir bajarse a caminar (E) o mantener
+        // Espacio para despegar, exactamente igual que en cualquier otro aterrizaje.
+        flightMode: 'landed',
       });
     } else if (choice.action === 'resume-flight') {
       set({ ...base, narrativeVisible: false });
@@ -153,6 +158,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   // surfacePlanetId queda seteado a propósito -- FlightController lo necesita al montar
   // de nuevo para saber sobre qué planeta reposicionar la nave, y lo limpia él mismo.
   returnToSpace: () => set({ flightMode: 'space' }),
+
+  exitShip: () => set({ flightMode: 'onfoot' }),
+  enterShip: () => set({ flightMode: 'landed' }),
 
   resetGame: () => set({ ...initialState }),
 }));

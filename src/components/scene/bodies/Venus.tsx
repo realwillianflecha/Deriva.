@@ -5,11 +5,12 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import type { Mesh } from 'three';
 import { PLANETS } from '@/content/planets/planetData';
+import { srgb } from '@/lib/textures';
 
 export default function Venus() {
   const meshRef = useRef<Mesh>(null);
   const { position, radius, textureMap } = PLANETS.venus;
-  const venusTex = useTexture(textureMap);
+  const venusTex = srgb(useTexture(textureMap));
 
   useFrame((_, delta) => {
     // Venus rota al revés que el resto (retrógrado) y más lento que su propio año —
